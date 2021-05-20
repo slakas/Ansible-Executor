@@ -1,0 +1,10 @@
+version: "2.0"
+services:
+  ansible:
+    image: slakas/ansible:latest
+    container_name: ansiblerunner
+    volumes:
+      - /mnt/ansible/:/mnt/ansible
+    command: /bin/bash
+    tty: true
+    working_dir: /mnt/ansible

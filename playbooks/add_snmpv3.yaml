@@ -1,0 +1,56 @@
+#Autor: kaszlikowski.s@gmail.com
+#
+- name: RUN PLAYBOOK ON CISCO DEVICE
+  hosts: routers
+  gather_facts: false
+  connection: local
+
+  vars_promt:
+    - name: "username"
+      prompt: "Wprowadź użytkownika"
+      private: no
+
+    - name: "userpass"
+      prompt: "Wprowadź hasło"
+      private: yes
+
+    - name: "enablepass"
+      prompt: "Wprowadź enablepass"
+      private: yes
+
+  vars:
+    ansible_user: '{{ username }}'
+    ansible_password: '{{ userpass }}'
+    ansible_become_password: '{{ enablepass }}'
+
+  tasks:
+    - name: add snmp server ip address to access-list 6
+      cisco.ios.ios_config:
+        lines:
+          - permit host 10.10.10.10 log
+        parents: ip access-list 6
+        match: exact
+
+    - name: add snmpv3 user
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server user username snmpv3read v3 auth sha authpass priv aes 128 privpass access 6
+
+    - name: add snmp server host
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server host 10.10.10.10 version 3 auth username
+
+    - name: show snmp configuration
+      cisco.ios.ios_command:
+        commands:
+          - show ip access-list 6
+          - show snmp user
+
+    - name: write configuration
+      cisco.ios.ios_command:
+        commands:
+          - write memory
+        prompt: 'confirm'
+        answer: '
+        '
